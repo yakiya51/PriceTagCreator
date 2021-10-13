@@ -1,16 +1,16 @@
 from PIL import Image
 from PIL import ImageDraw 
-from config import *
-from fonts import *
-
+# Local Imports
+from .size_config import *
+from .fonts import *
 
 class StoreItem:
-    def __init__(self, upc:str, brand:str, name:str, price:float, unit_size:str, packaging_size:int = 1):
+    def __init__(self, brand:str, name:str, price: str, unit_size:str, packaging_size:int = 1, upc:str = "", ):
         """A class made to represent an item sold at a retail store."""
         self.upc = upc
         self.brand = brand.upper()
         self.name = name.upper()
-        self.price = f"{price:,.2f}"
+        self.price = price
         self.unit_size = unit_size.upper()
         self.packaging_size = packaging_size
     

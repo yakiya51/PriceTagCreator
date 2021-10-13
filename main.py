@@ -1,9 +1,16 @@
-from tkinter import Label, Entry, Button, LabelFrame, Frame, ttk, messagebox
+from tkinter import Frame, ttk, Scrollbar
 import tkinter as tk
-from config import *
-from price_tags_assembler.store_item import StoreItem
+# Local Imports
+from update_window import *
 from price_tags_assembler.document_assembler import PriceTagDocument
+from price_tags_assembler.store_item import StoreItem
 
+"""
+todo
+  - Get new/updated items
+  - Preview items
+  - Validate inputs
+"""
 
 class MainFrame:
     def __init__(self, root):
@@ -39,8 +46,12 @@ class MainFrame:
         self.end_year = Entry(get_items_wrapper, width=6, justify='right')
         self.end_year.grid(row=1, column=5)     
         # Buttons
-        self.get_new_items = Button(get_items_wrapper, text="Get Items")
-        self.get_new_items.grid(row=2, column=0, pady=10, columnspan=10)
+        self.get_new_items = Button(get_items_wrapper, text="Get Items", command=self.get_new_updated_rows)
+        self.get_new_items.grid(row=2, column=1, pady=10, columnspan=10)
+
+        self.clear_dates = Button(get_items_wrapper, text="Clear", command=self.clear_search_dates)
+        self.clear_dates.grid(row=2, column=0, pady=10)
+
         # Custom Items ---------------------------------------------
         custom_items_wrapper = LabelFrame(self.frame, text="Custom Item")
         custom_items_wrapper.grid(sticky='nesw',row=1, column=0, padx=5)
@@ -58,21 +69,26 @@ class MainFrame:
         self.clear_custom_item_button = Button(custom_items_wrapper, text="Clear", command=self.clear_custom_item_inputs)
         self.clear_custom_item_button.grid(sticky='s', row=len(self.custom_inputs)+1, column=0, pady=10)
 
-        # Item Viewer ---------------------------------------------
+        # Tree View ---------------------------------------------
         item_list_wrapper = LabelFrame(self.frame, text="Items")
         item_list_wrapper.grid(sticky='nsew', row=0, column=1, rowspan=100)
+        # Scroll bar
+        self.tree_scroll = Scrollbar(item_list_wrapper)
+        self.tree_scroll.grid(row=0, column=4, sticky='ns')
         tree_columns = ("#1", "#2", "#3", "#4", "#5")
-        tree_column_names = ('Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price')
-        self.tree = ttk.Treeview(item_list_wrapper, columns=tree_columns, show='headings')
+        self.tree_column_names = ('Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price')
+        self.tree = ttk.Treeview(item_list_wrapper, columns=tree_columns, show='headings', yscrollcommand=self.tree_scroll.set)
+        self.tree_scroll.config(command=self.tree.yview)
+
         # Tree Columns
         for i in range(len(tree_columns)):
-            self.tree.heading(f"#{i+1}", text=tree_column_names[i])
-            self.tree.column(f"#{i+1}", minwidth=0, width=100, stretch=False)
+            self.tree.heading(f"#{i+1}", text=self.tree_column_names[i])
+            self.tree.column(f"#{i+1}", minwidth=0, width=120, stretch=True)
         self.tree.grid(sticky='nesw', row=0, column=0, columnspan=3)
         # Buttons
-        self.remove_items = Button(item_list_wrapper, text="Remove Items", command=self.remove_rows)
+        self.remove_items = Button(item_list_wrapper, text="Remove Selected", command=self.remove_rows)
         self.remove_items.grid(row=1, column=0, pady=10)
-        self.update_item = Button(item_list_wrapper, text="Update Item")
+        self.update_item = Button(item_list_wrapper, text="Update Item", command=self.update_row)
         self.update_item.grid(row=1, column=1, pady=10)
         self.remove_all_items = Button(item_list_wrapper, text="Remove All", command=self.remove_all_rows)
         self.remove_all_items.grid(row=1, column=2, pady=10)
@@ -81,6 +97,7 @@ class MainFrame:
         self.create_price_tags_button = Button(item_list_wrapper, text="Create Price Tags", command=self.create_price_tags)
         self.create_price_tags_button.grid(row=2, column=2, pady=10)       
 
+
     def set_options(self):
         """Configuring default options"""
         self.root.option_add("*Font", "Calibri 13")
@@ -88,6 +105,26 @@ class MainFrame:
         self.root.option_add("*Button.Relief", "groove")
         return
 
+    # New/Updated Items methods
+    def clear_search_dates(self):
+        """Clear user date inputs."""
+        self.start_day.delete(0, 'end')
+        self.start_month.delete(0, 'end')
+        self.start_year.delete(0, 'end')
+        self.end_day.delete(0, 'end')
+        self.end_month.delete(0, 'end')
+        self.end_year.delete(0, 'end')
+        return
+
+    def get_new_updated_rows(self):
+        """
+        Query new/updated records within the user-specified 
+        date range and display the queried rows onto the tree view.
+        """
+        start_date = f"{self.start_day.get()} / {self.start_month.get()} / {self.start_year.get()}"
+        end_date = f"{self.end_day.get()} / {self.end_month.get()} / {self.end_year.get()}"
+        return
+    
     # Custom Items Methods
     def add_custom_item(self):
         """Add a custom item row to the tree based on user inputs."""
@@ -107,6 +144,17 @@ class MainFrame:
         return
 
     # Tree Methods
+    def update_row(self):
+        selected = self.tree.selection()
+        if selected:
+            if len(selected) > 1:
+                messagebox.showwarning("You can only update one row at a time.")
+            else:
+                self.item_update_window = UpdateWindow(self.tree, selected[0])
+        else:
+            messagebox.showwarning("Warning", "Please select atleast 1 item from the list to update.")
+        return
+
     def remove_rows(self):
         """Remove a row from the tree."""
         selected = self.tree.selection()
@@ -145,6 +193,7 @@ class MainFrame:
             for row in self.rows_trashcan:
                 previous_index = int(row['index'].replace('I', ''))-1
                 self.tree.insert(parent="", index=previous_index, values=row['values'])
+        self.rows_trashcan = []
         return    
 
     def get_row_count(self):
@@ -152,7 +201,20 @@ class MainFrame:
         return len(self.tree.get_children())
 
     def create_price_tags(self):
-        pass
+        """Generate price tags for the items in the tree."""
+        if self.tree.get_children():
+            item_list = []
+            for row in self.tree.get_children():
+                row_values = self.tree.item(row)['values']
+                print(row_values)
+                # Price is stored in index 4
+                item_list.append(StoreItem(row_values[0], row_values[1], str(row_values[4]), row_values[2], row_values[3]))
+            price_tag_doc = PriceTagDocument(item_list)
+            price_tag_doc.assemble_document()
+            price_tag_doc.view_document()
+        else:
+            messagebox.showwarning("Warning", "There are no items in the list.")
+
 
 if __name__ == "__main__":
     root = tk.Tk()

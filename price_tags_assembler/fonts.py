@@ -2,7 +2,7 @@ from PIL import ImageFont
 
 
 def pt_to_px(pt: int) -> int:
-    """Returns the height in pixels of an pt sized font"""
+    """Returns the height in pixels of a pt sized font"""
     return round(pt * (72/96))
 
 

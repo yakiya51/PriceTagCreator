@@ -13,6 +13,6 @@ TAG_HEIGHT = 104
 
 # Price Part of the Price Tag in pixels
 PRICE_WIDTH = 97
-PRICE_HEIGHT = 45
+PRICE_HEIGHT = 46
 
 

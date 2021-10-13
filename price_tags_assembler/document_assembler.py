@@ -1,6 +1,7 @@
-from store_item import *
 from datetime import date
-
+# Local Imports
+from .store_item import *
+from .size_config import *
 
 class PriceTagDocument:
     def __init__(self, items: list[StoreItem]):
@@ -8,7 +9,7 @@ class PriceTagDocument:
         self.items = items
         self.items_on_document = 0
 
-    def create_document(self):
+    def assemble_document(self):
         """Create a page in the price tag document"""
         self.image = Image.new('RGBA', (DOCUMENT_WIDTH, DOCUMENT_HEIGHT), 'white')
         for item in self.items:
@@ -44,20 +45,21 @@ class PriceTagDocument:
         self.image.save(f'Documents/{file_name}')
         return
 
+if __name__ == "__main__":
+    pass
+    """milk = StoreItem("abc123", "Horizon", "Milk", 2.99, "1 Gallon")
+    bread = StoreItem("abc123", "Wonder Bread", "1 Loaf Bread", 1.50, "1 Loaf")
+    apples = StoreItem("abc123", "apple tree", "1 mf apple", 90.50, "1 apple")
+    sausage = StoreItem("abc123", "pig farm", "sausage", 3.50, "5 sausages")
+    cereal = StoreItem("abc123", "corn", "frosted flakes", 3.00, "1 box")
+    example = StoreItem("abc123", "EXAMPLE BRAND", "EXAMPLE ITEM NAME", 50.00, "1 UNIT")
 
-milk = StoreItem("abc123", "Horizon", "Milk", 2.99, "1 Gallon")
-bread = StoreItem("abc123", "Wonder Bread", "1 Loaf Bread", 1.50, "1 Loaf")
-apples = StoreItem("abc123", "apple tree", "1 mf apple", 90.50, "1 apple")
-sausage = StoreItem("abc123", "pig farm", "sausage", 3.50, "5 sausages")
-cereal = StoreItem("abc123", "corn", "frosted flakes", 3.00, "1 box")
-example = StoreItem("abc123", "EXAMPLE BRAND", "EXAMPLE ITEM NAME", 50.00, "1 UNIT")
+    items = [milk, bread, apples, sausage, cereal]
+    for i in range(31):
+        items.append(example)
 
-items = [milk, bread, apples, sausage, cereal]
-for i in range(31):
-    items.append(example)
+    test_doc = PriceTagDocument(items)
 
-test_doc = PriceTagDocument(items)
-
-test_doc.create_document()
-test_doc.save_document()
+    test_doc.assemble_document()
+    test_doc.view_document()"""
 
