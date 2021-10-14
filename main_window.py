@@ -1,15 +1,16 @@
-from tkinter import Frame, ttk, Scrollbar
+from tkinter import Frame, ttk, Scrollbar, filedialog
+from tkinter.messagebox import askyesno
 import tkinter as tk
 # Local Imports
 from update_window import *
 from price_tags_assembler.document_assembler import PriceTagDocument
 from price_tags_assembler.store_item import StoreItem
+from gui_config import *
 
 """
 todo
   - Get new/updated items
-  - Preview items
-  - Validate inputs
+  - Validate date inputs
 """
 
 class MainFrame:
@@ -21,7 +22,6 @@ class MainFrame:
         self.set_options()
         self.rows_trashcan = []
         # GUI Components
-
         # Get Updated and New Items ---------------------------------------------
         get_items_wrapper = LabelFrame(self.frame, text="Get New/Updated Items")
         get_items_wrapper.grid(sticky='nesw', row=0, column=0, padx=5)
@@ -86,15 +86,17 @@ class MainFrame:
             self.tree.column(f"#{i+1}", minwidth=0, width=120, stretch=True)
         self.tree.grid(sticky='nesw', row=0, column=0, columnspan=3)
         # Buttons
-        self.remove_items = Button(item_list_wrapper, text="Remove Selected", command=self.remove_rows)
+        self.remove_items = Button(item_list_wrapper, text="Remove Selected", command=self.remove_rows, background=RED)
         self.remove_items.grid(row=1, column=0, pady=10)
-        self.update_item = Button(item_list_wrapper, text="Update Item", command=self.update_row)
+        self.update_item = Button(item_list_wrapper, text="Update Selected", command=self.update_row)
         self.update_item.grid(row=1, column=1, pady=10)
-        self.remove_all_items = Button(item_list_wrapper, text="Remove All", command=self.remove_all_rows)
-        self.remove_all_items.grid(row=1, column=2, pady=10)
+        self.remove_all_items = Button(item_list_wrapper, text="Remove All", command=self.remove_all_rows, background=RED)
+        self.remove_all_items.grid(row=2, column=0, pady=10)
         self.undo_remove = Button(item_list_wrapper, text="Undo Remove", command=self.restore_rows)
-        self.undo_remove.grid(row=2, column=0, pady=10)        
-        self.create_price_tags_button = Button(item_list_wrapper, text="Create Price Tags", command=self.create_price_tags)
+        self.undo_remove.grid(row=2, column=1, pady=10)        
+        self.preview_price_tags_button = Button(item_list_wrapper, text="Preview Price Tags", command=lambda: self.create_price_tags(preview=True), background=BLUE)
+        self.preview_price_tags_button.grid(row=1, column=2, pady=10)      
+        self.create_price_tags_button = Button(item_list_wrapper, text="Save Price Tags", command=self.create_price_tags, background=GREEN)
         self.create_price_tags_button.grid(row=2, column=2, pady=10)       
 
 
@@ -105,7 +107,7 @@ class MainFrame:
         self.root.option_add("*Button.Relief", "groove")
         return
 
-    # New/Updated Items methods
+    # Get Items methods
     def clear_search_dates(self):
         """Clear user date inputs."""
         self.start_day.delete(0, 'end')
@@ -150,7 +152,7 @@ class MainFrame:
             if len(selected) > 1:
                 messagebox.showwarning("You can only update one row at a time.")
             else:
-                self.item_update_window = UpdateWindow(self.tree, selected[0])
+                self.item_update_window = ItemUpdateWindow(self.tree, selected[0])
         else:
             messagebox.showwarning("Warning", "Please select atleast 1 item from the list to update.")
         return
@@ -168,8 +170,11 @@ class MainFrame:
 
     def remove_all_rows(self):
         """Remove all rows from the tree."""
-        self.backup_rows(self.tree.get_children())
-        self.tree.delete(*self.tree.get_children())
+        if self.tree.get_children():
+            confirmation = askyesno(title='Confirmation', message='Are you sure you want to remove all items?')
+            if confirmation:
+                self.backup_rows(self.tree.get_children())
+                self.tree.delete(*self.tree.get_children())
         return        
 
     def backup_rows(self, rows):
@@ -184,7 +189,6 @@ class MainFrame:
                 del row_details['tags']
                 row_details['index'] = row
                 self.rows_trashcan.append(row_details)
-        print(self.rows_trashcan)
         return
     
     def restore_rows(self):
@@ -199,8 +203,9 @@ class MainFrame:
     def get_row_count(self):
         """Get the row count of the tree."""
         return len(self.tree.get_children())
-
-    def create_price_tags(self):
+    
+    # Price Tag Making Methods
+    def create_price_tags(self, preview=False):
         """Generate price tags for the items in the tree."""
         if self.tree.get_children():
             item_list = []
@@ -211,13 +216,17 @@ class MainFrame:
                 item_list.append(StoreItem(row_values[0], row_values[1], str(row_values[4]), row_values[2], row_values[3]))
             price_tag_doc = PriceTagDocument(item_list)
             price_tag_doc.assemble_document()
-            price_tag_doc.view_document()
+            if preview:
+                price_tag_doc.view_document()
+            else:
+                file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=(("PNG File", "*.png"),("All Files", "*.*") ))
+                price_tag_doc.save_document(file_path)
         else:
             messagebox.showwarning("Warning", "There are no items in the list.")
+        return
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     MainFrame(root)
     root.mainloop()
-

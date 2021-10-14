@@ -1,7 +1,7 @@
 from tkinter import Label, Entry, Button, LabelFrame, Toplevel, messagebox
 
 
-class UpdateWindow(Toplevel):
+class ItemUpdateWindow(Toplevel):
     def __init__(self, parent_tree, row_selected):
         self.parent_tree = parent_tree
         self.row_selected = row_selected

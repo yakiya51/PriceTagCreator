@@ -38,11 +38,9 @@ class PriceTagDocument:
         """View the document"""
         self.image.show()
         
-    def save_document(self) -> None:
+    def save_document(self, path) -> None:
         """Print the document"""
-        today = str(date.today()).replace('-', '_')
-        file_name = f"{today}_Price_Tags.png"
-        self.image.save(f'Documents/{file_name}')
+        self.image.save(path)
         return
 
 if __name__ == "__main__":
