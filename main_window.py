@@ -11,6 +11,7 @@ from gui_config import *
 todo
   - Get new/updated items
   - Validate date inputs
+  - Create offset (printing with missing stickers.)
 """
 
 class MainFrame:
@@ -21,9 +22,10 @@ class MainFrame:
         self.root.title("Price Tag Maker")
         self.set_options()
         self.rows_trashcan = []
+        self.item_count = 0
         # GUI Components
         # Get Updated and New Items ---------------------------------------------
-        get_items_wrapper = LabelFrame(self.frame, text="Get New/Updated Items")
+        """get_items_wrapper = LabelFrame(self.frame, text="Get New/Updated Items")
         get_items_wrapper.grid(sticky='nesw', row=0, column=0, padx=5)
         # Start date
         Label(get_items_wrapper, text="Start Date: ", anchor='w', width=13).grid(row=0, column=0)
@@ -50,18 +52,18 @@ class MainFrame:
         self.get_new_items.grid(row=2, column=1, pady=10, columnspan=10)
 
         self.clear_dates = Button(get_items_wrapper, text="Clear", command=self.clear_search_dates)
-        self.clear_dates.grid(row=2, column=0, pady=10)
+        self.clear_dates.grid(row=2, column=0, pady=10)"""
 
         # Custom Items ---------------------------------------------
         custom_items_wrapper = LabelFrame(self.frame, text="Custom Item")
         custom_items_wrapper.grid(sticky='nesw',row=1, column=0, padx=5)
         self.custom_inputs = ['Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price']
         self.custom_entries = {}
-
+        
         for i, input_name in enumerate(self.custom_inputs):
-            Label(custom_items_wrapper, text=input_name + ":", anchor='w', width=13).grid(row=i, column=0)
+            Label(custom_items_wrapper, text=input_name + ":", anchor='w', width=12).grid(row=i, column=0)
             self.custom_entries[input_name] = Entry(custom_items_wrapper)
-            self.custom_entries[input_name].grid(row=i, column=1)
+            self.custom_entries[input_name].grid(row=i, column=1, pady=5, padx=5)
         
         self.add_custom_item_button = Button(custom_items_wrapper, text="Add Item", command=self.add_custom_item)
         self.add_custom_item_button.grid(sticky='s', row=len(self.custom_inputs)+1, column=1, pady=10)
@@ -77,7 +79,7 @@ class MainFrame:
         self.tree_scroll.grid(row=0, column=4, sticky='ns')
         tree_columns = ("#1", "#2", "#3", "#4", "#5")
         self.tree_column_names = ('Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price')
-        self.tree = ttk.Treeview(item_list_wrapper, columns=tree_columns, show='headings', yscrollcommand=self.tree_scroll.set)
+        self.tree = ttk.Treeview(item_list_wrapper, columns=tree_columns, show='headings', yscrollcommand=self.tree_scroll.set, height=20)
         self.tree_scroll.config(command=self.tree.yview)
 
         # Tree Columns
@@ -85,26 +87,45 @@ class MainFrame:
             self.tree.heading(f"#{i+1}", text=self.tree_column_names[i])
             self.tree.column(f"#{i+1}", minwidth=0, width=120, stretch=True)
         self.tree.grid(sticky='nesw', row=0, column=0, columnspan=3)
+
+        # Offset Input
+        Label(item_list_wrapper, text="Price Tag Offset: ").grid(row=1, column=0)
+        self.offset_entry = Entry(item_list_wrapper, width=3, justify='right', validate="key")
+        self.offset_entry.insert('end', 0)
+        self.offset_entry['validatecommand'] = (self.offset_entry.register(check_if_int),'%P','%d')
+        self.offset_entry.grid(sticky='e',row=1, column=0, pady=25)
+
+        # Item Counters
+        Label(item_list_wrapper, text="Number of Items: ").grid(sticky='w',row=1, column=2)
+        self.item_count_label = Label(item_list_wrapper, text=str(self.item_count))
+        self.item_count_label.grid(sticky='e',row=1, column=2, pady=25)
+
         # Buttons
         self.remove_items = Button(item_list_wrapper, text="Remove Selected", command=self.remove_rows, background=RED)
-        self.remove_items.grid(row=1, column=0, pady=10)
+        self.remove_items.grid(row=2, column=0, pady=10)
         self.update_item = Button(item_list_wrapper, text="Update Selected", command=self.update_row)
-        self.update_item.grid(row=1, column=1, pady=10)
+        self.update_item.grid(row=2, column=1, pady=10)
         self.remove_all_items = Button(item_list_wrapper, text="Remove All", command=self.remove_all_rows, background=RED)
-        self.remove_all_items.grid(row=2, column=0, pady=10)
+        self.remove_all_items.grid(row=3, column=0, pady=10)
         self.undo_remove = Button(item_list_wrapper, text="Undo Remove", command=self.restore_rows)
-        self.undo_remove.grid(row=2, column=1, pady=10)        
-        self.preview_price_tags_button = Button(item_list_wrapper, text="Preview Price Tags", command=lambda: self.create_price_tags(preview=True), background=BLUE)
-        self.preview_price_tags_button.grid(row=1, column=2, pady=10)      
+        self.undo_remove.grid(row=3, column=1, pady=10)
+        self.preview_price_tags_button = Button(item_list_wrapper, text="Preview Price Tags", command=lambda: self.create_price_tags(preview=True))
+        self.preview_price_tags_button.grid(row=2, column=2, pady=10)
         self.create_price_tags_button = Button(item_list_wrapper, text="Save Price Tags", command=self.create_price_tags, background=GREEN)
-        self.create_price_tags_button.grid(row=2, column=2, pady=10)       
-
+        self.create_price_tags_button.grid(row=3, column=2, pady=10)       
 
     def set_options(self):
         """Configuring default options"""
-        self.root.option_add("*Font", "Calibri 13")
-        #self.root.option_add("*Background", "white")
+        self.root.option_add("*Font", "Calibri 15")
+        self.root.option_add("*Label.Font", "Calibri 13")
+        self.root.option_add("*Button.Font", "Calibri 13")
         self.root.option_add("*Button.Relief", "groove")
+        return
+
+    def update_item_counter(self, delta: int):
+        """Update the item counter"""
+        self.item_count += delta
+        self.item_count_label['text'] = str(self.item_count)
         return
 
     # Get Items methods
@@ -136,7 +157,8 @@ class MainFrame:
         # Makes sure input values aren't all empty
         if any(input_values):
             self.tree.insert(parent="", index=self.get_row_count(), values=input_values)
-        self.clear_custom_item_inputs()
+        self.update_item_counter(1)
+        #self.clear_custom_item_inputs()
         return
 
     def clear_custom_item_inputs(self):
@@ -147,6 +169,7 @@ class MainFrame:
 
     # Tree Methods
     def update_row(self):
+        """Update an existing row in the tree view."""
         selected = self.tree.selection()
         if selected:
             if len(selected) > 1:
@@ -164,17 +187,20 @@ class MainFrame:
             self.backup_rows(selected)
             for row in selected:
                 self.tree.delete(row)
+            self.update_item_counter(-1 * len(selected))
         else:
             messagebox.showwarning(title="Warning", message="Please select atleast 1 item from the list to remove.")       
         return
 
     def remove_all_rows(self):
         """Remove all rows from the tree."""
-        if self.tree.get_children():
+        children = self.tree.get_children()
+        if children:
             confirmation = askyesno(title='Confirmation', message='Are you sure you want to remove all items?')
             if confirmation:
-                self.backup_rows(self.tree.get_children())
-                self.tree.delete(*self.tree.get_children())
+                self.backup_rows(children)
+                self.tree.delete(*children)
+                self.update_item_counter(-1 * len(children))
         return        
 
     def backup_rows(self, rows):
@@ -195,8 +221,9 @@ class MainFrame:
         """Restores removed rows from trashcan."""
         if self.rows_trashcan:
             for row in self.rows_trashcan:
-                previous_index = int(row['index'].replace('I', ''))-1
+                previous_index = int(row['index'].replace('I', ''), 16)
                 self.tree.insert(parent="", index=previous_index, values=row['values'])
+        self.update_item_counter(len(self.rows_trashcan))      
         self.rows_trashcan = []
         return    
 
@@ -208,23 +235,38 @@ class MainFrame:
     def create_price_tags(self, preview=False):
         """Generate price tags for the items in the tree."""
         if self.tree.get_children():
+            # Offset validation
+            if not self.offset_entry.get():
+                messagebox.showwarning("Warning", "Please input a price tag offset. Default is 0.")
+                return                
+            offset = int(self.offset_entry.get())
+            if offset < 36:
+                pass
+            else:
+                messagebox.showwarning("Warning", "Price tag offset must be less than 36. [Maximum offset = 35]")
+                return
             item_list = []
             for row in self.tree.get_children():
                 row_values = self.tree.item(row)['values']
-                print(row_values)
                 # Price is stored in index 4
-                item_list.append(StoreItem(row_values[0], row_values[1], str(row_values[4]), row_values[2], row_values[3]))
-            price_tag_doc = PriceTagDocument(item_list)
-            price_tag_doc.assemble_document()
+                item_list.append(StoreItem(str(row_values[0]), str(row_values[1]), str(row_values[4]), str(row_values[2]), str(row_values[3])))
+            price_tag_doc = PriceTagDocument(item_list, int(self.offset_entry.get()))
             if preview:
-                price_tag_doc.view_document()
+                price_tag_doc.preview_document()
             else:
-                file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=(("PNG File", "*.png"),("All Files", "*.*") ))
+                file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=(("PDF File", "*.pdf"),("All Files", "*.*") ))
                 price_tag_doc.save_document(file_path)
         else:
             messagebox.showwarning("Warning", "There are no items in the list.")
         return
 
+
+def check_if_int(input, action_type):
+    """Input validation for integers"""
+    if action_type == '1': # insert
+        if not input.isdigit():
+            return False
+    return True
 
 if __name__ == "__main__":
     root = tk.Tk()

@@ -1,11 +1,11 @@
-import csv
-
+import openpyxl
 
 """
 Cleaning Steps:
  - Import CSV
  - Delete contents in column D through G
  - Remove blank rows
+ - Remove Duplicate Rows
  - Remove irrelevat rows
     - Title
     - Column names
@@ -16,19 +16,24 @@ Cleaning Steps:
  - Save as csv
 """
 
-def get_unit_or_packaging_size(item_name):
-    pass
+class PriceList:
+    def __init__(self, file_path):
+        pass
+    
+    def remove_blank_rows(self):
+        pass
 
+    def remove_irrelevant_rows(self):
+        pass    
 
+    def clean_values(self):
+        pass
 
-def remove_blank_rows(file):
-    pass
+    def clean_values(self):
+        pass
 
 
 if __name__ == "__main__":
-    with open('price_list.csv', 'r') as csv_file:
-        price_list = csv.reader(csv_file)
-        for row in price_list:
-            print(row)
+    pass
     
 

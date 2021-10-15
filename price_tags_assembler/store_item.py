@@ -5,14 +5,14 @@ from .size_config import *
 from .fonts import *
 
 class StoreItem:
-    def __init__(self, brand:str, name:str, price: str, unit_size:str, packaging_size:int = 1, upc:str = "", ):
+    def __init__(self, brand:str, name:str, price: str, unit_size:str, packaging_size: str = '', upc:str = "", ):
         """A class made to represent an item sold at a retail store."""
         self.upc = upc
         self.brand = brand.upper()
         self.name = name.upper()
         self.price = price
         self.unit_size = unit_size.upper()
-        self.packaging_size = packaging_size
+        self.packaging_size = packaging_size.upper()
     
 
     def create_price_tag(self) -> Image:
@@ -28,13 +28,16 @@ class StoreItem:
         price_top_right_y = price_bottom_left_y + PRICE_HEIGHT
 
         # Yellow Rectangle to Highlight Price
-        editor.rectangle([price_bottom_left_x,price_bottom_left_y, price_top_right_x,price_top_right_y], fill ="yellow")
+        editor.rectangle([price_bottom_left_x,price_bottom_left_y, price_top_right_x,price_top_right_y], fill ="white")
         # Brand Name
         editor.text((5, 5), self.brand, font=small_font, fill="black")
         # Item Name
         editor.text((5, 7 + pt_to_px(small_font_size)), self.name, font=medium_font, fill="black")
         # Unit Size
-        editor.text((5, TAG_HEIGHT-(medium_font.getsize(self.unit_size)[1] + 5)), self.unit_size, font=medium_font, fill="black")
+        editor.text((5, TAG_HEIGHT-(pt_to_px(medium_font_size))), self.unit_size, font=medium_font, fill="black")
+        # Packaging Size
+        if self.packaging_size:
+            editor.text((5, TAG_HEIGHT-(pt_to_px(medium_font_size) * 4)), self.packaging_size, font=small_font, fill="black")
         # Item Price
         editor.text((TAG_WIDTH-large_font.getsize(self.price)[0]-5, round((TAG_HEIGHT - PRICE_HEIGHT)/2)+pt_to_px(large_font_size)/4), self.price, font=large_font, fill="black")
         
