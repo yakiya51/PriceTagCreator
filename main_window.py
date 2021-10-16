@@ -2,16 +2,15 @@ from tkinter import Frame, ttk, Scrollbar, filedialog
 from tkinter.messagebox import askyesno
 import tkinter as tk
 # Local Imports
-from update_window import *
 from price_tags_assembler.document_assembler import PriceTagDocument
 from price_tags_assembler.store_item import StoreItem
+from update_window import *
 from gui_config import *
 
 """
 todo
   - Get new/updated items
   - Validate date inputs
-  - Create offset (printing with missing stickers.)
 """
 
 class MainFrame:
@@ -23,6 +22,18 @@ class MainFrame:
         self.set_options()
         self.rows_trashcan = []
         self.item_count = 0
+
+        # Center the window
+        win_width = 1030
+        win_height = 660
+
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        win_x_pos = int((screen_width/2) - (win_width/2))
+        wind_y_pos = int((screen_height/2) - (win_height/2))        
+
+        root.geometry(f'{win_width}x{win_height}+{win_x_pos}+{wind_y_pos}')
         # GUI Components
         # Get Updated and New Items ---------------------------------------------
         """get_items_wrapper = LabelFrame(self.frame, text="Get New/Updated Items")
@@ -72,46 +83,46 @@ class MainFrame:
         self.clear_custom_item_button.grid(sticky='s', row=len(self.custom_inputs)+1, column=0, pady=10)
 
         # Tree View ---------------------------------------------
-        item_list_wrapper = LabelFrame(self.frame, text="Items")
-        item_list_wrapper.grid(sticky='nsew', row=0, column=1, rowspan=100)
+        tree_wrapper = LabelFrame(self.frame, text="Items")
+        tree_wrapper.grid(sticky='nsew', row=0, column=1, rowspan=100)
         # Scroll bar
-        self.tree_scroll = Scrollbar(item_list_wrapper)
+        self.tree_scroll = Scrollbar(tree_wrapper)
         self.tree_scroll.grid(row=0, column=4, sticky='ns')
         tree_columns = ("#1", "#2", "#3", "#4", "#5")
         self.tree_column_names = ('Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price')
-        self.tree = ttk.Treeview(item_list_wrapper, columns=tree_columns, show='headings', yscrollcommand=self.tree_scroll.set, height=20)
+        self.tree = ttk.Treeview(tree_wrapper, columns=tree_columns, show='headings', yscrollcommand=self.tree_scroll.set, height=20)
         self.tree_scroll.config(command=self.tree.yview)
 
         # Tree Columns
         for i in range(len(tree_columns)):
             self.tree.heading(f"#{i+1}", text=self.tree_column_names[i])
-            self.tree.column(f"#{i+1}", minwidth=0, width=120, stretch=True)
-        self.tree.grid(sticky='nesw', row=0, column=0, columnspan=3)
+            self.tree.column(f"#{i+1}", minwidth=0, width=130, stretch=True, anchor="e")
+        self.tree.grid(sticky='nesw', row=0, column=0, columnspan=3, padx=5, pady=5)
 
         # Offset Input
-        Label(item_list_wrapper, text="Price Tag Offset: ").grid(row=1, column=0)
-        self.offset_entry = Entry(item_list_wrapper, width=3, justify='right', validate="key")
+        Label(tree_wrapper, text="Price Tag Offset: ").grid(row=1, column=0)
+        self.offset_entry = Entry(tree_wrapper, width=3, justify='right', validate="key")
         self.offset_entry.insert('end', 0)
         self.offset_entry['validatecommand'] = (self.offset_entry.register(check_if_int),'%P','%d')
         self.offset_entry.grid(sticky='e',row=1, column=0, pady=25)
 
         # Item Counters
-        Label(item_list_wrapper, text="Number of Items: ").grid(sticky='w',row=1, column=2)
-        self.item_count_label = Label(item_list_wrapper, text=str(self.item_count))
+        Label(tree_wrapper, text="Number of Items: ").grid(sticky='w',row=1, column=2)
+        self.item_count_label = Label(tree_wrapper, text=str(self.item_count))
         self.item_count_label.grid(sticky='e',row=1, column=2, pady=25)
 
         # Buttons
-        self.remove_items = Button(item_list_wrapper, text="Remove Selected", command=self.remove_rows, background=RED)
+        self.remove_items = Button(tree_wrapper, text="Remove Selected", command=self.remove_rows, background=RED)
         self.remove_items.grid(row=2, column=0, pady=10)
-        self.update_item = Button(item_list_wrapper, text="Update Selected", command=self.update_row)
+        self.update_item = Button(tree_wrapper, text="Update Selected", command=self.update_row)
         self.update_item.grid(row=2, column=1, pady=10)
-        self.remove_all_items = Button(item_list_wrapper, text="Remove All", command=self.remove_all_rows, background=RED)
+        self.remove_all_items = Button(tree_wrapper, text="Remove All", command=self.remove_all_rows, background=RED)
         self.remove_all_items.grid(row=3, column=0, pady=10)
-        self.undo_remove = Button(item_list_wrapper, text="Undo Remove", command=self.restore_rows)
+        self.undo_remove = Button(tree_wrapper, text="Undo Remove", command=self.restore_rows)
         self.undo_remove.grid(row=3, column=1, pady=10)
-        self.preview_price_tags_button = Button(item_list_wrapper, text="Preview Price Tags", command=lambda: self.create_price_tags(preview=True))
+        self.preview_price_tags_button = Button(tree_wrapper, text="Preview Price Tags", command=lambda: self.create_price_tags(preview=True))
         self.preview_price_tags_button.grid(row=2, column=2, pady=10)
-        self.create_price_tags_button = Button(item_list_wrapper, text="Save Price Tags", command=self.create_price_tags, background=GREEN)
+        self.create_price_tags_button = Button(tree_wrapper, text="Save Price Tags", command=self.create_price_tags, background=GREEN)
         self.create_price_tags_button.grid(row=3, column=2, pady=10)       
 
     def set_options(self):
@@ -249,7 +260,7 @@ class MainFrame:
             for row in self.tree.get_children():
                 row_values = self.tree.item(row)['values']
                 # Price is stored in index 4
-                item_list.append(StoreItem(str(row_values[0]), str(row_values[1]), str(row_values[4]), str(row_values[2]), str(row_values[3])))
+                item_list.append(StoreItem(str(row_values[0].strip()), str(row_values[1].strip()), str(row_values[4].strip()), str(row_values[2].strip()), str(row_values[3].strip())))
             price_tag_doc = PriceTagDocument(item_list, int(self.offset_entry.get()))
             if preview:
                 price_tag_doc.preview_document()

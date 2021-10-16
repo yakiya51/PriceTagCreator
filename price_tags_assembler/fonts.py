@@ -6,9 +6,9 @@ def pt_to_px(pt: int) -> int:
     return round(pt * (72/96))
 
 
-small_font_size = 14
-medium_font_size = 17
-large_font_size = 38
+small_font_size = 44
+medium_font_size = 53
+large_font_size = 118
 
 # Linux
 """small_font = ImageFont.truetype("/usr/share/fonts/TTF/AkaashNormal.ttf", small_font_size, encoding="unic")

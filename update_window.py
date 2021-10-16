@@ -9,6 +9,7 @@ class ItemUpdateWindow(Toplevel):
         self.row_values = self.parent_tree.item(row_selected, 'values')
 
         self.item_update_window = Toplevel()
+
         self.item_update_window.title("Update Item")
         self.item_update_window.grab_set()
         self.item_update_attributes = ['Brand Name', 'Item Name', 'Unit Size', 'Packaging Size', 'Price']
@@ -31,7 +32,17 @@ class ItemUpdateWindow(Toplevel):
 
         self.cancel_update_button = Button(item_update_wrapper, text="Cancel", command=self.close_window)
         self.cancel_update_button.grid(sticky='s', row=len(self.item_update_entries)+1, column=1, pady=10)
+        # Center Window
+        win_width = self.item_update_window.winfo_width()
+        win_height = self.item_update_window.winfo_height()
+        print(win_width, win_height)
+        screen_width = self.item_update_window.winfo_screenwidth()
+        screen_height = self.item_update_window.winfo_screenheight()
+        
+        win_x_pos = int((screen_width/2) - (win_width/2))
+        wind_y_pos = int((screen_height/2) - (win_height/2)) 
 
+        self.item_update_window.geometry(f'+{win_x_pos}+{wind_y_pos}')
 
     def update_item(self):
         """Update record in the tree view."""
